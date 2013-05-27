@@ -1,0 +1,18 @@
+{
+   "envMap":{
+      "dev":[
+         {
+            "name":"catalog",
+            "ip":"localhost",
+            "port":"8080",
+            "context":"catalog-api"
+         },
+         {
+            "name":"category",
+            "ip":"localhost",
+            "port":"8090",
+            "context":"category-api"
+         }
+      ]
+   }
+}

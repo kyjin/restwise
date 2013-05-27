@@ -17,4 +17,12 @@ public class RestClientBeanPostProcessorTests extends AbstractJUnit4SpringContex
 	public void createClientBean() throws Exception {
 		assertThat(applicationContext.getBean(ProductWebServiceApi.class), notNullValue());
 	}
+
+	@Test
+	public void simpleCall() throws Exception {
+		ProductWebServiceApi api = applicationContext.getBean(ProductWebServiceApi.class);
+		Product p = api.getProduct("prd100");
+
+		assertThat(p, notNullValue());
+	}
 }

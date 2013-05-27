@@ -10,4 +10,6 @@ public interface ProductWebServiceApi {
 
 	@WebServiceMapping(url = "/product/{productCode}", method = HttpMethod.GET, description = "find for Single Product")
 	Product getProduct(String productCode);
+
+	void notMapping();
 }

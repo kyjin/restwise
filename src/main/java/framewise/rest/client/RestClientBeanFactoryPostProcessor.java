@@ -11,6 +11,9 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.ClassUtils;
 
+import framewise.rest.client.host.WebServiceHostConfig;
+import framewise.rest.client.host.WebServiceHostResolver;
+
 /**
  * 웹서비스 클라인언트 API를 인식해서 빈으로 등록해주는 {@link BeanFactoryPostProcessor} 구현체
  * 
@@ -23,8 +26,14 @@ public class RestClientBeanFactoryPostProcessor implements BeanFactoryPostProces
 
 	private String basePackage;
 
+	private WebServiceHostResolver hostResolver;
+
 	public void setBasePackage(String basePackage) {
 		this.basePackage = basePackage;
+	}
+
+	public void setHostResolver(WebServiceHostResolver hostResolver) {
+		this.hostResolver = hostResolver;
 	}
 
 	/*
@@ -40,8 +49,21 @@ public class RestClientBeanFactoryPostProcessor implements BeanFactoryPostProces
 		RestClientSupportClassPathScanningCandidateComponentProvider provider = new RestClientSupportClassPathScanningCandidateComponentProvider();
 		Set<BeanDefinition> candidateComponents = provider.findCandidateComponents(basePackage);
 
+		// Create Host information
+		WebServiceHostConfig hostConfig = null;
+		try {
+			hostConfig = hostResolver.loadHostConfig();
+			createAndRegisterBean(beanFactory, candidateComponents, hostConfig);
+		} catch (Exception e) {
+			throw new RuntimeException("웹서비스 호스트 정보를 구성하는 중 예외가 발생했습니다", e);
+		}
+
+	}
+
+	private void createAndRegisterBean(ConfigurableListableBeanFactory beanFactory, Set<BeanDefinition> candidateComponents,
+			WebServiceHostConfig hostConfig) {
 		for (BeanDefinition beanDefinition : candidateComponents) {
-			Object proxyObject = createProxiedBeanObject(beanDefinition, beanFactory);
+			Object proxyObject = createProxiedBeanObject(beanDefinition, beanFactory, hostConfig);
 			beanFactory.registerSingleton(beanDefinition.getBeanClassName(), proxyObject);
 		}
 	}
@@ -51,19 +73,22 @@ public class RestClientBeanFactoryPostProcessor implements BeanFactoryPostProces
 	 * 
 	 * @param beanDefinition
 	 * @param beanFactory
+	 * @param hostConfig
 	 * @return
 	 */
-	protected Object createProxiedBeanObject(BeanDefinition beanDefinition, ConfigurableListableBeanFactory beanFactory) {
+	protected Object createProxiedBeanObject(BeanDefinition beanDefinition, ConfigurableListableBeanFactory beanFactory,
+			WebServiceHostConfig hostConfig) {
 		ProxyFactory factory = new ProxyFactory();
 		RestClientProxyObject proxyObject = new RestClientProxyObject();
 		factory.setTarget(proxyObject);
 		factory.setInterfaces(new Class[] { resolveTargetInterface(beanDefinition.getBeanClassName(), beanFactory) });
-		factory.addAdvice(new RestClientOperationMethodInterceptor());
+
+		RestClientOperationMethodInterceptor interceptor = new RestClientOperationMethodInterceptor(hostConfig);
+		factory.addAdvice(interceptor);
 
 		Object beanObject = factory.getProxy();
 		if (logger.isDebugEnabled()) {
-			logger.debug("Create proxy bean object(ID: " + beanObject.toString() + ") to "
-					+ beanDefinition.getBeanClassName() + ".");
+			logger.debug("Create proxy bean object to " + beanDefinition.getBeanClassName());
 		}
 		return beanObject;
 	}
