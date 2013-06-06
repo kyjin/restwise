@@ -10,6 +10,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import framewise.rest.client.Product;
+
+
 @ContextConfiguration("testcontext.xml")
 public class RestClientBeanPostProcessorTests extends AbstractJUnit4SpringContextTests {
 

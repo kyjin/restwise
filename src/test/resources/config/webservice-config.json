@@ -5,13 +5,13 @@
             "name":"catalog",
             "ip":"localhost",
             "port":"8080",
-            "context":"catalog-api"
+            "context":"api"
          },
          {
             "name":"category",
             "ip":"localhost",
             "port":"8090",
-            "context":"category-api"
+            "context":"api"
          }
       ]
    }

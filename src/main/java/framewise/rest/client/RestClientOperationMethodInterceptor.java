@@ -1,10 +1,11 @@
 package framewise.rest.client;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.core.env.Environment;
 
 import framewise.rest.client.host.WebServiceHost;
 import framewise.rest.client.host.WebServiceHostConfig;
@@ -19,13 +20,13 @@ import framewise.rest.client.model.WebServiceOperation;
  */
 public class RestClientOperationMethodInterceptor implements MethodInterceptor {
 
-	private static final String ENVIRONMENT_VM_ARGUMENT_KEY = "_runenv";
-	private RestClientTemplate clientTemplate = new RestClientTemplate();
 	private WebServiceHostConfig hostConfig;
 
 	private WebServiceInvoker invoker = new SimpleWebServiceInvoker();
 
-	private Environment environment;
+	private String targetKey;
+
+	private Map<String, WebServiceOperation> operationCacheMap = new HashMap<String, WebServiceOperation>();
 
 	/**
 	 * 기본 생성자
@@ -37,45 +38,26 @@ public class RestClientOperationMethodInterceptor implements MethodInterceptor {
 	 * WebServiceHostConfig를 파라미터로 받는 생성자
 	 * 
 	 * @param hostConfig
+	 * @param targetKey
 	 */
-	public RestClientOperationMethodInterceptor(WebServiceHostConfig hostConfig) {
+	public RestClientOperationMethodInterceptor(WebServiceHostConfig hostConfig, String targetKey) {
 		this.hostConfig = hostConfig;
-	}
-
-	public void setClientTemplate(RestClientTemplate clientTemplate) {
-		this.clientTemplate = clientTemplate;
-	}
-
-	public RestClientTemplate getClientTemplate() {
-		return clientTemplate;
+		this.targetKey = targetKey;
 	}
 
 	public void setHostConfig(WebServiceHostConfig hostConfig) {
 		this.hostConfig = hostConfig;
 	}
 
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		// First, resolve to target method information
-		WebServiceOperation operation = resolveOperationInformation(invocation.getMethod());
+		WebServiceOperation operation = resolveOperation(invocation.getMethod());
 
-		WebServiceHost host = hostConfig.getHostConfig(getRunningEnvironmentKey(), resolveHostName(invocation));
+		WebServiceHost host = hostConfig.getHostConfig(targetKey);
 
 		Object result = invoker.invoke(host, operation, invocation);
 		return result;
-	}
-
-	protected String resolveHostName(MethodInvocation invocation) {
-
-		return null;
-	}
-
-	private String getRunningEnvironmentKey() {
-		return environment.getProperty(ENVIRONMENT_VM_ARGUMENT_KEY);
 	}
 
 	/**
@@ -84,7 +66,19 @@ public class RestClientOperationMethodInterceptor implements MethodInterceptor {
 	 * @param method
 	 * @return
 	 */
-	protected WebServiceOperation resolveOperationInformation(Method method) {
+	protected WebServiceOperation resolveOperation(Method method) {
+		String name = method.getName();
+		WebServiceOperation operation = getOperationByCache(name);
+
+		if (operation != null) {
+			return operation;
+		}
+
+		operation = initialzieOperation(method);
+		return operation;
+	}
+
+	private WebServiceOperation initialzieOperation(Method method) {
 		WebServiceMapping mapping = method.getAnnotation(WebServiceMapping.class);
 		if (mapping == null) {
 			throw new UnsupportedOperationException("현재는 @WebServiceMapping을 반드시 사용해야 합니다. 향후 Convention으로 지원 예정..");
@@ -95,4 +89,7 @@ public class RestClientOperationMethodInterceptor implements MethodInterceptor {
 		return operation;
 	}
 
+	private WebServiceOperation getOperationByCache(String name) {
+		return this.operationCacheMap.get(name);
+	}
 }

@@ -11,6 +11,8 @@ import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ReflectionUtils;
 
+import framewise.rest.client.RestClientOperationMethodInterceptor;
+
 public class MethodInterceptorTests {
 
 	@Test

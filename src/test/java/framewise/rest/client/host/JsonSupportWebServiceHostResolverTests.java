@@ -7,11 +7,16 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import framewise.rest.client.host.JsonSupportWebServiceHostConfigResolver;
+import framewise.rest.client.host.WebServiceEnvironment;
+import framewise.rest.client.host.WebServiceHost;
+import framewise.rest.client.host.WebServiceHostConfig;
+
 public class JsonSupportWebServiceHostResolverTests {
 
 	@Test
 	public void loadBasicConfig() throws Exception {
-		JsonSupportWebServiceHostResolver resolver = new JsonSupportWebServiceHostResolver();
+		JsonSupportWebServiceHostConfigResolver resolver = new JsonSupportWebServiceHostConfigResolver();
 		WebServiceHostConfig config = resolver.loadHostConfig();
 
 		assertThat(config, notNullValue());

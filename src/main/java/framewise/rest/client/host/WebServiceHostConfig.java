@@ -25,4 +25,19 @@ public interface WebServiceHostConfig extends Serializable {
 	 */
 	WebServiceHost getHostConfig(String envKey, String hostName);
 
+	/**
+	 * envKey(실행환경변수)를 건네지 않으면 초기화 시에 결정된 환경으로 수행 됨
+	 * 
+	 * @param resolveHostName
+	 * @return
+	 */
+	WebServiceHost getHostConfig(String hostName);
+
+	/**
+	 * 실행되는 애플리케이션의 환경변수 값을 설정함
+	 * 
+	 * @param envKey
+	 */
+	void setEnvKey(String envKey);
+
 }

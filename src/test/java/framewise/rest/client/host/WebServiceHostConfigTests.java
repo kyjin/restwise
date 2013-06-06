@@ -4,6 +4,11 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import framewise.rest.client.host.JsonSupportWebServiceHostConfig;
+import framewise.rest.client.host.WebServiceEnvironment;
+import framewise.rest.client.host.WebServiceHost;
+import framewise.rest.client.host.WebServiceHostConfig;
+
 public class WebServiceHostConfigTests {
 
 	@Test
